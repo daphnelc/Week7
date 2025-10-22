@@ -3,87 +3,88 @@ console.log('Client is working');
 //load the page
 window.addEventListener("load", function () {
 
-    const feed = document.getElementById('feed');
+  const feed = document.getElementById('feed');
 
-    //fetching the data from the route
-    fetch('/messages')
-        .then(response => {
-            return response.json()
-        })
+  //fetching the data from the route
+  fetch('/breakfast')
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
 
-        .then(data => {
-            console.log(data);
-            //Step 7. Add messages to the page
+      //Add breakfasts to the page
+      const breakfasts = data.data;
+      console.log(breakfasts);
 
-            //create a paragraph for each of the messages
-            let messages = data.data;
-            console.log(messages);
+      for (let i = 0; i < breakfasts.length; i++) {
+        const breakfast = breakfasts[i].breakfast;
+        const date = breakfasts[i].date;
+        console.log(breakfast, date);
 
-            for (let i = 0; i < messages.length; i++) {
-                let message = messages[i].message;
-                console.log(message);
-
-                let newMessage = document.createElement('p');
-                newMessage.innerHTML = message;
-
-                feed.appendChild(newMessage);
-            }
-        })
-
-        .catch(error => {
-            console.log(error);
-        });
-
-
-    /* -------------------------------------------------------------------------- */
-    /*                              get new messages                              */
-    /* -------------------------------------------------------------------------- */
-
-    let msgInput = document.querySelector("#msg-input");
-    let button = document.querySelector('#msg-submit');
-
-    button.addEventListener('click', () => {
-        //Access an input value
-        console.log('clicked');
-
-        let msgValue = msgInput.value;
-        console.log('msgValue');
-
-        //Create an object to send
-        let messageObject = {
-            message: msgValue //value of the message
-        }
-
-        console.log('messageObject');
-
-        //Stringify data
-        let messageObjectJSON = JSON.stringify(messageObject);
-        console.log(messageObjectJSON);
-
-        //create a POST request
-        this.fetch('/new-message', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: messageObjectJSON
-        })
-            
-            .then(response => {
-            return response.json()
-        })
-            .then(data => {
-                //Do something with the data when it comes back from the server
-                console.log(data);
-
-                //add new message to the page
-                let newMsg = this.document.createElement('p');
-                newMsg.innerHTML = data.message;
-                feed.appendChild(newMsg);
-            })
-            .catch(error => {
-                console.log(error);
-            });
-
+        const newBreakfast = document.createElement('div');
+        newBreakfast.classList.add('breakfast-item');
+        
+        newBreakfast.innerHTML = `
+          <p class="date">${date}</p>
+          <p class="breakfast">${breakfast}</p>
+        `;
+        
+        feed.appendChild(newBreakfast);
+      }
+    })
+    .catch(error => {
+      console.error(error);
     });
 
+  /* -------------------------------------------------------------------------- */
+  /*                            Add new breakfast item                          */
+  /* -------------------------------------------------------------------------- */
+
+  const dateInput = document.querySelector("#date-input");
+  const breakfastInput = document.querySelector("#breakfast-input");
+  const button = document.querySelector('#breakfast-submit');
+
+  button.addEventListener('click', () => {
+    console.log('clicked');
+
+    const dateValue = dateInput.value;
+    const breakfastValue = breakfastInput.value;
+    console.log(dateValue, breakfastValue);
+
+    const breakfastObject = {
+      date: dateValue,
+      breakfast: breakfastValue
+    };
+    console.log(breakfastObject);
+
+    const breakfastObjectJSON = JSON.stringify(breakfastObject);
+    console.log(breakfastObjectJSON);
+
+    fetch('/new-breakfast', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: breakfastObjectJSON
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+
+        const newBreakfast = document.createElement('div');
+        newBreakfast.classList.add('breakfast-item');
+        
+        newBreakfast.innerHTML = `
+          <p class="date">${data.date}</p>
+          <p class="breakfast">${data.breakfast}</p>
+        `;
+        
+        feed.appendChild(newBreakfast);
+
+        // clear inputs
+        dateInput.value = '';
+        breakfastInput.value = '';
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  });
 });
 

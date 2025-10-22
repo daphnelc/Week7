@@ -1,22 +1,23 @@
-//Data
-let messages = [
-  {
-    message: "This is the first message"
-  },
-  {
-    message: "This is the second message"
-  }
-];
+// let breakfasts = require('./breakfast.json');
 
 //Set up a server
-let express = require('express');
+
+// 0. load lowdb
+// change require to import
+// let express = require('express');
+import express from 'express'
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
+
 let app = express();
+
+// 1. connect to the db
+const adapter = new JSONFile('breakfast.json');
+const db = new Low(adapter, {});
 
 //Serve a public folder
 app.use(express.static('public'));
-app.use(express.json()); //parse the message data to see it on the server side
-
-
+app.use(express.json());
 
 //Start a server
 let port = 3000;
@@ -24,32 +25,46 @@ app.listen(port, () => {
   console.log(`Server is listening on localhost:${port}`);
 });
 
-
 /* -------------------------------------------------------------------------- */
 /*                                    routes                                  */
 /* -------------------------------------------------------------------------- */
 
-//message route
-app.get('/messages', (request, response) => {
-  //send data as an object
-  let messagesData = {
-    data: messages
+//POST route
+app.post('/new-breakfast', (request, response) => {
+  console.log('New breakfast received:', request.body);
+
+  const breakfast = request.body;
+
+  // Add submition date 
+  if (!breakfast.date) {
+    const today = new Date();
+    breakfast.date = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
   }
 
-  response.json(messagesData);
+  // breakfasts.data.push(breakfast);
+  // 2. add value to the db
+    db.read()
+    .then(() => {
+      db.data.data.push(breakfast);
+      return db.write();
+    })
+    .then(() => {
+      console.log('Breakfast added:', breakfast);
+      response.json(breakfast);
+    });
+
+  // console.log(breakfasts);
+  // response.json(breakfast);
 });
 
-//POST route
-app.post('/new-message', (request, response) => {
-  console.log(request.body);
+//breakfast route
+app.get('/breakfast', (request, response) => {
+  
+  //3. fetch from the db
+  db.read().then(() => {
+    response.json(db.data);
+  });
 
-let message = request.body;
-  messages.push(message);
-  console.log(messages);
-
-  //send the message back to the client
-  response.json(message);
+  //response.json(breakfasts);
 });
 
-//git
-//git init - initialize repo
