@@ -12,8 +12,9 @@ import { JSONFile } from 'lowdb/node'
 let app = express();
 
 // 1. connect to the db
+const defaultData = { data: [] };
 const adapter = new JSONFile('breakfast.json');
-const db = new Low(adapter, {});
+const db = new Low(adapter, defaultData);
 
 //Serve a public folder
 app.use(express.static('public'));
@@ -43,7 +44,7 @@ app.post('/new-breakfast', (request, response) => {
 
   // breakfasts.data.push(breakfast);
   // 2. add value to the db
-    db.read()
+  db.read()
     .then(() => {
       db.data.data.push(breakfast);
       return db.write();
@@ -59,7 +60,7 @@ app.post('/new-breakfast', (request, response) => {
 
 //breakfast route
 app.get('/breakfast', (request, response) => {
-  
+
   //3. fetch from the db
   db.read().then(() => {
     response.json(db.data);
